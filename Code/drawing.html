@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Trace Drawing</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      color: #333;
+    }
+    header {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+    }
+    .canvas-container {
+      flex: 3;
+      position: relative;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    video, img, canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .tools {
+      flex: 1;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .tools h3 { margin: 0; }
+    .tools label { font-size: 14px; margin-bottom: 4px; display: block; }
+    .tools input[type="color"],
+    .tools input[type="range"],
+    .tools input[type="file"] {
+      width: 100%;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #6c63ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #5146d9;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span>🎨 AR Trace Drawing</span>
+    <a href="index.html" style="text-decoration:none; color:#333;">🏠 Home</a>
+  </header>
+  <main>
+    <div class="canvas-container">
+      <video id="camera" autoplay playsinline></video>
+      <img id="bgImage" style="display:none;">
+      <canvas id="drawCanvas"></canvas>
+    </div>
+    <div class="tools">
+      <h3>Tools</h3>
+      
+      <label>Upload Background</label>
+      <input type="file" id="uploadBg" accept="image/*">
+
+      <label>Background Opacity</label>
+      <input type="range" id="bgOpacity" min="0" max="100" value="100">
+
+      <label>Brush Color</label>
+      <input type="color" id="brushColor" value="#ff0000">
+
+      <label>Brush Size</label>
+      <input type="range" id="brushSize" min="1" max="20" value="4">
+
+      <button id="eraser">Eraser</button>
+      <button id="clear">Clear</button>
+      <button id="save">Save Drawing</button>
+    </div>
+  </main>
+
+  <script>
+    const video = document.getElementById("camera");
+    const bgImage = document.getElementById("bgImage");
+    const canvas = document.getElementById("drawCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const uploadBg = document.getElementById("uploadBg");
+    const bgOpacity = document.getElementById("bgOpacity");
+    const brushColor = document.getElementById("brushColor");
+    const brushSize = document.getElementById("brushSize");
+    const eraser = document.getElementById("eraser");
+    const clear = document.getElementById("clear");
+    const save = document.getElementById("save");
+
+    let drawing = false;
+    let isEraser = false;
+
+    // Resize canvas
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // ✅ Camera stream (force back camera with fallback)
+    async function startCamera() {
+      try {
+        // try exact back camera
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        console.warn("Exact environment failed, trying fallback:", err);
+        try {
+          // fallback
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+          });
+          video.srcObject = stream;
+        } catch (err2) {
+          console.error("Camera error:", err2);
+          alert("Camera open nahi ho raha. Kripya back camera allow karein.");
+        }
+      }
+    }
+    startCamera();
+
+    // Upload background
+    uploadBg.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) {
+        bgImage.src = URL.createObjectURL(file);
+        bgImage.style.display = "block";
+      }
+    });
+
+    // Background opacity
+    bgOpacity.addEventListener("input", e => {
+      bgImage.style.opacity = e.target.value / 100;
+    });
+
+    // Drawing
+    function startDraw(e) {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(getX(e), getY(e));
+    }
+    function draw(e) {
+      if (!drawing) return;
+      ctx.lineTo(getX(e), getY(e));
+      ctx.strokeStyle = isEraser ? "#ffffff" : brushColor.value;
+      ctx.lineWidth = brushSize.value;
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+    function endDraw() {
+      drawing = false;
+      ctx.beginPath();
+    }
+    function getX(e) { return e.clientX - canvas.getBoundingClientRect().left; }
+    function getY(e) { return e.clientY - canvas.getBoundingClientRect().top; }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", endDraw);
+    canvas.addEventListener("mouseout", endDraw);
+
+    canvas.addEventListener("touchstart", e => startDraw(e.touches[0]));
+    canvas.addEventListener("touchmove", e => { draw(e.touches[0]); e.preventDefault(); });
+    canvas.addEventListener("touchend", endDraw);
+
+    // Tools
+    eraser.addEventListener("click", () => {
+      isEraser = !isEraser;
+      eraser.textContent = isEraser ? "Eraser (On)" : "Eraser";
+    });
+    clear.addEventListener("click", () => {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    });
+    save.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "drawing.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  </script>
+</body>
+</html>

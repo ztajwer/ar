@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Trace — Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="pastel">
+  <!-- HEADER -->
+  <header class="header">
+    <h1>✨ AR Trace ✨</h1>
+    <nav>
+      <button onclick="openModal('aboutModal')">About</button>
+      <button onclick="openModal('howModal')">How It Works</button>
+      <button onclick="openModal('contactModal')">Contact</button>
+    </nav>
+    <div class="theme-switcher">
+      <button onclick="setTheme('pastel')">🌸 Pastel</button>
+      <button onclick="setTheme('glass')">✨ Glass</button>
+      <button onclick="setTheme('minimal')">🍃 Minimal</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h2>Trace Anything, Anywhere</h2>
+    <p>Open your camera, adjust opacity, and start drawing like magic ✨</p>
+    <a href="drawing.html" class="cta">Start Drawing</a>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="card">🎥 Live Camera Tracing</div>
+    <div class="card">🖌 Adjustable Pencil</div>
+    <div class="card">💾 Save Your Art</div>
+    <div class="card">🌈 Multiple Themes</div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">© 2025 AR Trace | Made with ❤️</footer>
+
+  <!-- MODALS -->
+  <div id="aboutModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('aboutModal')">&times;</span>
+      <h2>About</h2>
+      <p>AR Trace is a creative tool to trace drawings using your camera or uploaded images.</p>
+    </div>
+  </div>
+
+  <div id="howModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('howModal')">&times;</span>
+      <h2>How It Works</h2>
+      <ul>
+        <li>Open live camera or upload image</li>
+        <li>Adjust opacity to see-through</li>
+        <li>Trace exactly using pencil</li>
+        <li>Save your masterpiece</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="contactModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('contactModal')">&times;</span>
+      <h2>Contact</h2>
+      <p>Email: hello@artrace.com</p>
+      <p>Instagram: @artraceapp</p>
+    </div>
+  </div>
+
+  <script src="scripts.js"></script>
+</body>
+</html>
